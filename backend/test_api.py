@@ -17,6 +17,25 @@ class CastingAgencyTestCase(unittest.TestCase):
         self.database_path = 'postgres://{}/{}'.format('localhost:5432', self.database_name)
         setup_db(self.app, self.database_path)
 
+        self.add_actor = {
+            'name': 'Kamal',
+            'age': 55,
+            'gender': 'M'
+        }
+
+        self.add_movie = {
+            'name': 'Indian2',
+            'release_date': '2020-12-12'
+        }
+
+        self.update_movie = {
+            'name': 'India-2'
+        }
+
+        self.update_actor = {
+            'name': 'Kamal Hasan'
+        }
+
         # binds the app to the current context
         with self.app.app_context():
             self.db = SQLAlchemy()
@@ -74,14 +93,40 @@ class CastingAgencyTestCase(unittest.TestCase):
             self.assertEqual(res.status_code, 200)
             self.assertEqual(data['success'], True)
 
-    # def test_404_delete_actor(self):
-    #     actor_id = 100
-    #     res = self.client().delete(f'/actors/{actor_id}')
-    #     data = json.loads(res.data)
-    #
-    #     self.assertEqual(res.status_code, 404)
-    #     self.assertEqual(data['success'], False)
-    #     self.assertEqual(data['message'], 'resource not found')
+    def test_add_actor(self):
+        res = self.client().post('/actors', data=json.dumps(self.add_actor), content_type='application/json')
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+
+    def test_add_movie(self):
+        res = self.client().post('/movies', data=json.dumps(self.add_movie), content_type='application/json')
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+
+    def test_update_movie(self):
+        id = 1
+        res = self.client().patch(f'/movies/{id}', data=json.dumps(self.update_movie), content_type='application/json')
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+
+    def test_update_actor(self):
+        id = 6
+        res = self.client().patch(f'/actors/{id}', data=json.dumps(self.update_actor), content_type='application/json')
+        data = json.loads(res.data)
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(data['success'], True)
+
+    def test_404_delete_actor(self):
+        actor_id = 100
+        res = self.client().delete(f'/actors/{actor_id}')
+        data = json.loads(res.data)
+
+        self.assertEqual(res.status_code, 404)
+        self.assertEqual(data['success'], False)
+        self.assertEqual(data['message'], 'resource not found')
 
 
 if __name__ == "__main__":
