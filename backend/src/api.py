@@ -1,5 +1,9 @@
+import os
+
+from sqlalchemy import exc
 from flask import Flask, jsonify, abort, request, url_for, redirect
 from flask_cors import CORS
+import json
 
 from .database.models import setup_db, Actor, Movie
 from .auth.auth import AuthError, requires_auth
@@ -9,11 +13,18 @@ def create_app(test_config=None):
     # create and config the app
     app = Flask(__name__)
     setup_db(app)
+    # CORS(app)
     CORS(app, resources={r"/api/*": {"origins": '*'}})
+
+    @app.after_request
+    def after_request(response):
+        response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,True')
+        response.headers.add('Access-Control-Allow-Methods', 'GET, PUT, POST, PATCH, DELETE, OPTIONS')
+        return response
 
     @app.route('/actors')
     @requires_auth('get:actors')
-    def get_actors():
+    def get_actors(jwt):
         actors = Actor.query.all()
 
         actors_name = [actor.name for actor in actors]
@@ -31,7 +42,7 @@ def create_app(test_config=None):
 
     @app.route('/movies')
     @requires_auth('get:movies')
-    def get_movies():
+    def get_movies(jwt):
         movies = Movie.query.all()
 
         movie_names = [movie.name for movie in movies]
@@ -47,7 +58,7 @@ def create_app(test_config=None):
 
     @app.route('/actors/<int:actor_id>', methods=['DELETE'])
     @requires_auth('delete:actors')
-    def delete_actor(actor_id):
+    def delete_actor(jwt, actor_id):
         try:
             actor = Actor.query.filter(Actor.id == actor_id).one_or_none()
             if actor is None:
@@ -62,7 +73,7 @@ def create_app(test_config=None):
 
     @app.route('/movies/<int:movie_id>', methods=['DELETE'])
     @requires_auth('delete:movies')
-    def delete_movie(movie_id):
+    def delete_movie(jwt, movie_id):
         try:
             movie = Movie.query.filter(Movie.id == movie_id).one_or_none()
             if movie is None:
@@ -76,7 +87,7 @@ def create_app(test_config=None):
 
     @app.route('/actors', methods=['POST'])
     @requires_auth('post:actors')
-    def add_actor():
+    def add_actor(jwt):
         body = request.get_json()
         actor_name = body.get('name', None)
         actor_age = body.get('age', None)
@@ -90,7 +101,7 @@ def create_app(test_config=None):
 
     @app.route('/movies', methods=['POST'])
     @requires_auth('post:movies')
-    def add_movie():
+    def add_movie(jwt):
         body = request.get_json()
         movie_name = body.get('name', None)
         movie_release_date = body.get('release_date', None)
@@ -107,7 +118,7 @@ def create_app(test_config=None):
     '''
     @app.route('/actors/<int:id>', methods=['PATCH'])
     @requires_auth('patch:actors')
-    def update_actors(id):
+    def update_actors(jwt, id):
         actor = Actor.query.filter_by(id=id).one_or_none()
 
         if actor is None:
@@ -146,7 +157,7 @@ def create_app(test_config=None):
 
     @app.route('/movies/<int:id>', methods=['PATCH'])
     @requires_auth('patch:movies')
-    def update_movies(id):
+    def update_movies(jwt, id):
         movie = Movie.query.filter_by(id=id).one_or_none()
 
         if movie is None:
