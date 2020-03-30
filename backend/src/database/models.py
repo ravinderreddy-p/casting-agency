@@ -2,9 +2,10 @@ import os
 
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import Column, Integer, String, Date
+from flask_migrate import Migrate
 
 database_name = 'casting_agency'
-database_path = 'postgres://{}/{}'.format('localhost:5432', database_name)
+database_path = 'postgres://czupthrakoiebb:40e2294faf1c2b347252e5185180fec345f2b8416daf88081b41bbf1f0f50893@ec2-3-234-109-123.compute-1.amazonaws.com:5432/d3oed7orapo5u8'
 
 db = SQLAlchemy()
 
